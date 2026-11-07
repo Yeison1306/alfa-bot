@@ -1,0 +1,16 @@
+{
+  "name": "alfa-bot",
+  "version": "1.0.0",
+  "description": "Bot de Telegram Alfa - despliegue 24/7 en Render",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "node-telegram-bot-api": "^0.66.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
