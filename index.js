@@ -1,57 +1,38 @@
-// Bot de Telegram "Alfa" - modo polling, listo para Render (worker 24/7)
 const TelegramBot = require('node-telegram-bot-api');
+const http = require('http');
 
-const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const ACCESS_USERS = (process.env.ACCESS_USERS || '')
-  .split(',')
-  .map((id) => id.trim())
-  .filter(Boolean);
+const token = process.env.TELEGRAM_BOT_TOKEN;
+const accessUsers = process.env.ACCESS_USERS 
+  ? process.env.ACCESS_USERS.split(',').map(id => id.trim()) 
+  : [];
 
-if (!TOKEN) {
-  console.error('ERROR: Falta la variable de entorno TELEGRAM_BOT_TOKEN');
+if (!token) {
+  console.error('Error: TELEGRAM_BOT_TOKEN no está configurado.');
   process.exit(1);
 }
 
-const bot = new TelegramBot(TOKEN, { polling: true });
+const bot = new TelegramBot(token, { polling: true });
 
-function isAuthorized(userId) {
-  // Si ACCESS_USERS está vacío, el bot queda abierto a cualquiera (no recomendado en prod)
-  if (ACCESS_USERS.length === 0) return true;
-  return ACCESS_USERS.includes(String(userId));
-}
+// Servidor HTTP básico para satisfacer el requisito de tipo 'web' en Render
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('Alfa Bot is running!\n');
+});
 
-bot.on('polling_error', (err) => {
-  console.error('Polling error:', err.message);
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`Servidor HTTP escuchando en el puerto ${PORT}`);
 });
 
 bot.onText(/\/start/, (msg) => {
-  const chatId = msg.chat.id;
-  const userId = msg.from.id;
-
-  if (!isAuthorized(userId)) {
-    bot.sendMessage(chatId, '🚫 No tienes autorización para usar este bot.');
+  const chatId = msg.chat.id.toString();
+  
+  if (accessUsers.length > 0 && !accessUsers.includes(chatId)) {
+    bot.sendMessage(chatId, '⛔ No tienes autorización para usar este bot.');
     return;
   }
-
-  bot.sendMessage(
-    chatId,
-    '🤖 Hola, soy Alfa. Estoy activo 24/7 y listo para ayudarte.\n\nEscribe cualquier mensaje y te responderé.'
-  );
+  
+  bot.sendMessage(chatId, '🤖 Hola, soy Alfa. ¡Estoy operativo 24/7 en Render!');
 });
 
-bot.on('message', (msg) => {
-  if (!msg.text || msg.text.startsWith('/start')) return;
-
-  const chatId = msg.chat.id;
-  const userId = msg.from.id;
-
-  if (!isAuthorized(userId)) {
-    bot.sendMessage(chatId, '🚫 No tienes autorización para usar este bot.');
-    return;
-  }
-
-  // Lógica de respuesta base (personalizable)
-  bot.sendMessage(chatId, `Recibido: "${msg.text}"`);
-});
-
-console.log('Alfa bot iniciado en modo polling...');
+console.log('Bot Alfa iniciado correctamente...');
