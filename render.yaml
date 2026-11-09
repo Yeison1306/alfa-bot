@@ -2,9 +2,17 @@ services:
   - type: web
     name: alfa-bot
     runtime: docker
+    dockerfilePath: ./Dockerfile
     plan: free
+    healthCheckPath: /
     envVars:
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: ACCESS_USERS
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
+      - key: TAVILY_API_KEY
         sync: false
