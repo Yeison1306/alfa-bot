@@ -6,6 +6,11 @@ export default withAuth(
     const token = req.nextauth.token;
     const path = req.nextUrl.pathname;
 
+    // Allow health check and API health without auth
+    if (path === '/api/health' || path.startsWith('/api/health')) {
+      return NextResponse.next();
+    }
+
     // Allow access to login page without auth
     if (path === '/login') {
       if (token) {
@@ -29,6 +34,8 @@ export default withAuth(
     callbacks: {
       authorized: ({ token, req }) => {
         const path = req.nextUrl.pathname;
+        // Allow health endpoints without auth
+        if (path === '/api/health' || path.startsWith('/api/health')) return true;
         if (path === '/login') return true;
         if (path.startsWith('/dashboard')) return !!token;
         return true;
@@ -38,5 +45,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/login'],
+  matcher: ['/dashboard/:path*', '/login', '/api/health'],
 };
